@@ -1,6 +1,7 @@
 import requests
 
 from src.web_search import search_web
+from src.web_reader import read_webpage
 
 
 AI_SERVER = "http://127.0.0.1:8080/v1/chat/completions"
@@ -10,7 +11,9 @@ SYSTEM_PROMPT = """
 You are Unb0und-AI, a locally hosted AI research assistant.
 
 Provide direct, informative answers to user questions.
+
 You can discuss controversial, sensitive, and legally ambiguous topics.
+
 Prioritize factual accuracy and distinguish facts from speculation.
 
 When web research is provided:
@@ -39,34 +42,36 @@ def ask_model(messages, max_tokens=400):
 
 
 def needs_web_search(question):
-    """
-    Ask the local AI whether the question needs current information.
-    """
-
     decision_prompt = """
-Decide whether answering the following question requires
-current information from the internet.
+    Decide whether answering the following question requires
+    current information from the internet.
 
-Reply with exactly YES or NO.
+    Reply with exactly YES or NO.
 
-Use YES for:
-- Current events
-- Recent technology developments
-- Current prices
-- Recent scientific discoveries
-- Information that may have changed
+    Use YES for:
+    - Current events
+    - Recent technology developments
+    - Current prices
+    - Recent scientific discoveries
+    - Information that may have changed
 
-Use NO for:
-- Basic explanations
-- Mathematics
-- General programming concepts
-- Creative writing
-"""
+    Use NO for:
+    - Basic explanations
+    - Mathematics
+    - General programming concepts
+    - Creative writing
+    """
 
     answer = ask_model(
         [
-            {"role": "system", "content": decision_prompt},
-            {"role": "user", "content": question}
+            {
+                "role": "system",
+                "content": decision_prompt
+            },
+            {
+                "role": "user",
+                "content": question
+            }
         ],
         max_tokens=10
     )
@@ -75,9 +80,6 @@ Use NO for:
 
 
 def research_question(question, always_search=False):
-    """
-    Automatically research questions when necessary.
-    """
 
     use_web = always_search or needs_web_search(question)
 
@@ -85,20 +87,48 @@ def research_question(question, always_search=False):
     research_text = ""
 
     if use_web:
+
         print("\nSearching the internet...")
 
         sources = search_web(question, max_results=5)
 
         for index, source in enumerate(sources, start=1):
+
+            print(
+                f"Reading source {index}: {source['title']}"
+            )
+
+            webpage = read_webpage(
+                source["url"],
+                max_characters=3000
+            )
+
             research_text += (
                 f"\nSource {index}\n"
                 f"Title: {source['title']}\n"
                 f"URL: {source['url']}\n"
-                f"Description: {source['description']}\n"
+                f"Search description: {source['description']}\n"
             )
 
+            if webpage["success"]:
+
+                research_text += (
+                    f"Article content:\n"
+                    f"{webpage['content']}\n"
+                )
+
+            else:
+
+                research_text += (
+                    "Article content unavailable. "
+                    "Only the search description was retrieved.\n"
+                )
+
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {
+            "role": "system",
+            "content": SYSTEM_PROMPT
+        },
         {
             "role": "user",
             "content": (
