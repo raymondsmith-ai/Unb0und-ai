@@ -22,3 +22,6 @@ data/
 # Temporary files
 *.log
 .pytest_cache/
+
+# Local AI inference engine
+AI-Tools/
