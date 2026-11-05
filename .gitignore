@@ -1,0 +1,24 @@
+.venv/
+__pycache__/
+*.pyc
+
+# AI models
+models/
+*.gguf
+*.safetensors
+*.pt
+*.pth
+
+# Private data
+data/
+*.db
+*.sqlite3
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Temporary files
+*.log
+.pytest_cache/
