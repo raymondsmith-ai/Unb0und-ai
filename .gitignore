@@ -25,3 +25,8 @@ data/
 
 # Local AI inference engine
 AI-Tools/
+# Local AI conversation memory
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
